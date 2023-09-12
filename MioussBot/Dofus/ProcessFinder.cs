@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Diagnostics;
 
-namespace MioussBot
+namespace MioussBot.Dofus
 {
-    internal class DofusProcess
+    internal class ProcessFinder
     {
         static private Thread? finding;
         static private CancellationTokenSource? tokenSource;
@@ -16,7 +11,7 @@ namespace MioussBot
             tokenSource = new();
             finding = new Thread(() =>
             {
-                Form1.AddText("Finding Dofus...");
+                Form1.Log("Finding Dofus...");
 
                 bool hasFound = false;
 
@@ -29,7 +24,7 @@ namespace MioussBot
                     if (hasFound)
                     {
                         Process DofusProcess = processes[0];
-                        Form1.AddText($"Dofus found at {DofusProcess.Id}");
+                        Form1.Log($"Dofus found at {DofusProcess.Id}");
 
                         SocketListener.Start();
                     }
@@ -45,8 +40,8 @@ namespace MioussBot
 
         static public void StopFinding()
         {
-                tokenSource?.Cancel();
-                finding?.Join();
+            tokenSource?.Cancel();
+            finding?.Join();
         }
 
         public static void Stop()

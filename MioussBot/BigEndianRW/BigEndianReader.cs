@@ -1,10 +1,11 @@
 ﻿using System.Text;
 
-namespace MioussBot
+namespace MioussBot.BigEndianRW
 {
     internal class BigEndianReader
     {
         private readonly int INT_SIZE = 32;
+        private readonly int SHORT_SIZE = 16;
         private readonly int CHUNCK_BIT_SIZE = 7;
         private readonly int MASK_10 = 128;
         private readonly int MASK_01 = 127;
@@ -20,7 +21,7 @@ namespace MioussBot
         public byte ReadByte()
         {
             if (position >= content.Length)
-                throw new Exception("No more byte to read");
+                throw new Exception("No more (READ BYTE) byte to read");
 
             return content[position++];
         }
@@ -88,17 +89,45 @@ namespace MioussBot
             throw new Exception("Too much data");
         }
 
+        public short ReadVarShort()
+        {
+            int value = 0;
+            int offset = 0;
+
+            while (offset < SHORT_SIZE)
+            {
+                int b = ReadByte();
+                bool hasNext = (b & MASK_10) == MASK_10;
+                if (offset > 0)
+                    value += (b & MASK_01) << offset;
+                else
+                    value += b & MASK_01;
+
+                offset += CHUNCK_BIT_SIZE;
+
+                if (!hasNext)
+                {
+                    if (value > short.MaxValue)
+                        value -= 65536;
+
+                    return (short)value;
+                }
+            }
+
+            throw new Exception("Too much data");
+        }
+
         public double ReadDouble()
         {
             long longBits =
-                ((long)ReadByte() << 56) |
-                ((long)ReadByte() << 48) |
-                ((long)ReadByte() << 40) |
-                ((long)ReadByte() << 32) |
-                ((long)ReadByte() << 24) |
-                ((long)ReadByte() << 16) |
+                ((long)ReadByte() << 56) +
+                ((long)ReadByte() << 48) +
+                ((long)ReadByte() << 40) +
+                ((long)ReadByte() << 32) +
+                ((long)ReadByte() << 24) +
+                ((long)ReadByte() << 16) +
                 ((long)ReadByte() << 8) |
-                (long)ReadByte();
+                ReadByte();
 
             return BitConverter.Int64BitsToDouble(longBits);
         }

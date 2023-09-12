@@ -36,14 +36,14 @@ namespace MioussBot
                      {
                          while (!tokenSource.Token.IsCancellationRequested)
                          {
-                             Filter.Handler(Socket, targetSocket, isClient);
+                             PacketDecoder.Handler(Socket, targetSocket, isClient);
                          }
 
                          StopSocket();
                      }
                      catch (Exception e)
                      {
-                         Form1.AddText(e.ToString());
+                         Form1.Log(e.ToString());
                      }
                  });
 
@@ -57,7 +57,7 @@ namespace MioussBot
 
             string origin = isClient ? "Client" : "Server";
 
-            Form1.AddText($"{origin} connection closed");
+            Form1.Log($"{origin} connection closed");
         }
 
 
@@ -82,11 +82,11 @@ namespace MioussBot
             listener.Bind(localEndPoint);
             listener.Listen(10);
 
-            Form1.AddText("Waiting for a connection...");
+            Form1.Log("Waiting for a connection...");
 
             Socket = listener.Accept();
 
-            Form1.AddText($"Connected to Dofus Client by {Socket.RemoteEndPoint}");
+            Form1.Log($"Connected to Dofus Client by {Socket.RemoteEndPoint}");
 
         }
 
@@ -95,7 +95,7 @@ namespace MioussBot
             Socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.Connect("172.65.220.96", 5555);
 
-            Form1.AddText($"Connected to Ankama Server by {Socket.RemoteEndPoint}");
+            Form1.Log($"Connected to Ankama Server by {Socket.RemoteEndPoint}");
         }
     }
 }

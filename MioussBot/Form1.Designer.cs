@@ -34,6 +34,7 @@
             button1 = new Button();
             button2 = new Button();
             button3 = new Button();
+            Test = new Button();
             SuspendLayout();
             // 
             // Start
@@ -42,7 +43,7 @@
             Start.ForeColor = Color.White;
             Start.Location = new Point(2, 354);
             Start.Name = "Start";
-            Start.Size = new Size(402, 99);
+            Start.Size = new Size(393, 74);
             Start.TabIndex = 0;
             Start.Text = "START";
             Start.UseVisualStyleBackColor = false;
@@ -52,9 +53,9 @@
             // 
             Stop.BackColor = Color.Red;
             Stop.ForeColor = Color.White;
-            Stop.Location = new Point(401, 354);
+            Stop.Location = new Point(413, 354);
             Stop.Name = "Stop";
-            Stop.Size = new Size(402, 99);
+            Stop.Size = new Size(390, 74);
             Stop.TabIndex = 1;
             Stop.Text = "STOP";
             Stop.UseVisualStyleBackColor = false;
@@ -72,9 +73,9 @@
             // 
             // button1
             // 
-            button1.Location = new Point(12, 280);
+            button1.Location = new Point(12, 268);
             button1.Name = "button1";
-            button1.Size = new Size(167, 53);
+            button1.Size = new Size(130, 34);
             button1.TabIndex = 3;
             button1.Text = "Interact Zaap Astrub";
             button1.UseVisualStyleBackColor = true;
@@ -82,9 +83,9 @@
             // 
             // button2
             // 
-            button2.Location = new Point(576, 280);
+            button2.Location = new Point(12, 308);
             button2.Name = "button2";
-            button2.Size = new Size(167, 53);
+            button2.Size = new Size(130, 40);
             button2.TabIndex = 4;
             button2.Text = "Interact Zaap Tainela";
             button2.UseVisualStyleBackColor = true;
@@ -92,7 +93,7 @@
             // 
             // button3
             // 
-            button3.Location = new Point(290, 280);
+            button3.Location = new Point(181, 283);
             button3.Name = "button3";
             button3.Size = new Size(167, 53);
             button3.TabIndex = 5;
@@ -100,11 +101,22 @@
             button3.UseVisualStyleBackColor = true;
             button3.Click += Button3_Click;
             // 
+            // Test
+            // 
+            Test.Location = new Point(489, 283);
+            Test.Name = "Test";
+            Test.Size = new Size(247, 56);
+            Test.TabIndex = 6;
+            Test.Text = "TEST PACKET";
+            Test.UseVisualStyleBackColor = true;
+            Test.Click += Test_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(Test);
             Controls.Add(button3);
             Controls.Add(button2);
             Controls.Add(button1);
@@ -124,6 +136,7 @@
         public Button Stop;
         private Button button2;
         private Button button3;
+        private Button Test;
         static public TextBox DebugBox;
     }
 }

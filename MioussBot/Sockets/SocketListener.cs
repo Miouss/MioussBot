@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Net.Sockets;
-
-namespace MioussBot
+﻿namespace MioussBot
 {
     internal class SocketListener
     {
@@ -25,7 +22,7 @@ namespace MioussBot
             }
             catch (Exception e)
             {
-                Form1.AddText(e.ToString());
+                Form1.Log(e.ToString());
 
             }
         }

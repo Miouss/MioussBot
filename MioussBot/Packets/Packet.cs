@@ -1,8 +1,8 @@
-﻿namespace MioussBot
+﻿namespace MioussBot.Packets
 {
     internal struct Packet
     {
-        public short idAndLengthType;
+        public int header;
         public short id;
         public short lengthType;
         public int length;

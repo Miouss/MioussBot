@@ -1,7 +1,8 @@
 ﻿using System.Net.Sockets;
 using System.Text;
+using MioussBot.Packets;
 
-namespace MioussBot
+namespace MioussBot.BigEndianRW
 {
     internal class BigEndianWriter
     {
@@ -10,10 +11,14 @@ namespace MioussBot
         private readonly int MASK_10 = 128;
         private readonly int MASK_01 = 127;
 
-        private readonly List<byte> buffer = new();
-        private Packet packet = new();
+        private readonly List<byte> buffer;
+        private Packet packet;
 
-        public BigEndianWriter() { }
+        public BigEndianWriter()
+        {
+            packet = new();
+            buffer = new();
+        }
 
         public void SendPacket()
         {
@@ -22,16 +27,19 @@ namespace MioussBot
             if (packet.length == 0)
                 throw new Exception("Packet vide");
 
-            SocketListener.ankamaServer.Socket.Send(packet.content);
-            string packetHexa = BitConverter.ToString(packet.content).Replace("-", " ");
+            PacketDecoder.DecodePacket(packet.content, false, true);
 
-            Form1.AddText($"\n[SEND] ID : {packet.id}\n");
-
-            buffer.Clear();
-            packet = new();
+            if (SocketListener.ankamaServer != null)
+            {
+                SocketListener.ankamaServer.Socket.Send(packet.content);
+            }
+            else
+            {
+                Form1.Log("Not connected to Ankama Server");
+            }
         }
 
-        private int GetLengthType()
+        private int GetAndWriteLengthType()
         {
             int length = buffer.Count;
             packet.length = length;
@@ -62,7 +70,7 @@ namespace MioussBot
             return 0;
         }
 
-        private void WritePacketIdAndLengthType(int id, int lengthType)
+        private void WriteHeader(int id, int lengthType)
         {
             short idAndLengthType = (short)((id << 2) + lengthType);
             byte[] bytes = BitConverter.GetBytes(idAndLengthType);
@@ -73,10 +81,10 @@ namespace MioussBot
         public void Pack(short id, int instanceId)
         {
             packet.id = id;
-            int lengthType = GetLengthType();
+            int lengthType = GetAndWriteLengthType();
             foreach (byte b in BitConverter.GetBytes(instanceId))
                 WriteByteAtBegin(b);
-            WritePacketIdAndLengthType(id, lengthType);
+            WriteHeader(id, lengthType);
         }
 
         public void WriteString(string message)
@@ -95,7 +103,7 @@ namespace MioussBot
 
         public void WriteShort(short value)
         {
-            byte[] bytes = BitConverter.GetBytes(value);
+            byte[] bytes = BitConverter.GetBytes(value).Reverse().ToArray();
             WriteBytes(bytes);
         }
 
@@ -277,7 +285,14 @@ namespace MioussBot
 
                 WriteByte((byte)b);
             }
-        }   
+        }
+
+        public void WriteDouble(double value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value).Reverse().ToArray();
+
+            WriteBytes(bytes);
+        }
 
     }
 

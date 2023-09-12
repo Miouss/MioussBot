@@ -1,10 +1,11 @@
 ﻿using System.Net.Sockets;
+using MioussBot.BigEndianRW;
+using MioussBot.Packets;
 
 namespace MioussBot
 {
-    internal class Filter
+    internal class PacketDecoder
     {
-
         public static void Handler(Socket socket, Socket targetSocket, bool isClient = true)
         {
 
@@ -21,27 +22,30 @@ namespace MioussBot
 
         public static void DecodePacket(
               byte[] buffer,
-              bool isClient = true
+              bool isClient = true,
+              bool isProxy = false
           )
         {
             int i = 0;
             Packet packet;
             packet.id = 0;
             string status = isClient ? "CLIENT" : "SERVER";
-            //Form1.AddText($"{Environment.NewLine} {Environment.NewLine} ------- NEW PACKET {status}-------");
+            status = isProxy ? "PROXY" : status;
+
+            //Form1.Log($"{Environment.NewLine} {Environment.NewLine} ------- NEW PACKET {status}-------");
             try
             {
                 while (i < buffer.Length)
                 {
+                    packet.header = ((buffer[0] << 8) + buffer[i + 1]);
 
-                    packet.idAndLengthType = (short)((buffer[i] << 8) + buffer[i + 1]);
+                    packet.id = (short)(packet.header >> 2);
 
-                    packet.id = (short)(packet.idAndLengthType >> 2);
-                    packet.lengthType = (short)(packet.idAndLengthType & 3);
+                    packet.lengthType = (short)(packet.header & 3);
 
                     i += 2;
 
-                    if (isClient)
+                    if (isClient || isProxy)
                     {
                         packet.instanceId =
                             (buffer[i] << 24)
@@ -68,37 +72,26 @@ namespace MioussBot
                     packet.content = new byte[packet.length];
                     Array.Copy(buffer, i + packet.lengthType, packet.content, 0, packet.length);
 
-                    TreatPacket(packet, status);
+                    TreatPacket(packet.content, packet.id, status);
 
-                    i += packet.length + packet.lengthType;
+                    i += (packet.length + packet.lengthType);
                 }
             }
             catch (Exception e)
             {
-                Form1.AddText($"\tImpossible to decode packet [{packet.id}] : {e.Message}");
+                //Form1.Log($"\tImpossible to decode packet [{packet.id}] : {e.Message}");
             }
         }
 
-        static void TreatPacket(Packet packet, string status)
+        public static void TreatPacket(byte[] content, int id, string status)
         {
-            BigEndianReader reader = new(packet.content);
+            BigEndianReader reader = new(content);
 
-            PacketDictionnary.LogPacketName(packet.id, status);
+            PacketDictionnary.LogPacketName(id, status);
 
-            PacketReader.reader = reader;
-
-            switch (packet.id)
-            {
-                case 3145:
-                    PacketReader.CurrentMapMessage();
-                break;
-                case 6295:
-                    PacketReader.InteractiveUseRequestMessage();
-                    break;
-                case 6639:
-                    PacketReader.GameMapMovementMessage();
-                 break;
-            }
+            PacketDeserialize.reader = reader;
+            
+            PacketDeserialize.Handle(id);
 
         }
     }

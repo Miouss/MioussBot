@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using MioussBot.Dofus;
+using MioussBot.Packets;
 
 namespace MioussBot
 {
@@ -19,14 +21,14 @@ namespace MioussBot
             {
                 SetRunningButton();
 
-                DofusProcess.StartFinding();
+                ProcessFinder.StartFinding();
             }
             else
             {
                 SetCancellingButton();
 
                 SocketListener.StopFiltering();
-                DofusProcess.StopFinding();
+                ProcessFinder.StopFinding();
 
                 SetStartButton();
             }
@@ -57,7 +59,7 @@ namespace MioussBot
         private void Stop_Click(object sender, EventArgs e)
         {
             SocketListener.Stop();
-            DofusProcess.Stop();
+            ProcessFinder.Stop();
 
             Application.Exit();
         }
@@ -67,24 +69,42 @@ namespace MioussBot
 
         }
 
-        static public void AddText(string text)
+
+        static public void LogPacket(string text)
+        {
+            Log(text);
+        }
+
+        static public void LogPacketMessage(string text)
+        {
+            Log($"\t{text}");
+        }
+
+        static public void Log(string text)
         {
             DebugBox.AppendText(text + Environment.NewLine);
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            PacketSender.ZaapAstrub();
+            PacketSerializeAndSend.ZaapAstrub();
         }
 
         private void Button2_Click(object sender, EventArgs e)
         {
-            PacketSender.ZaapTainela();
+            PacketSerializeAndSend.ZaapTainela();
         }
 
         private void Button3_Click(object sender, EventArgs e)
         {
-            PacketSender.OrtieTainela();
+            
         }
+
+        private void Test_Click(object sender, EventArgs e)
+        {
+            PacketSerializeAndSend.test();
+        }
+
+
     }
 }
