@@ -1,4 +1,6 @@
-﻿namespace MioussBot.Packets
+﻿using MioussBot.Packets.List;
+
+namespace MioussBot.Packets
 {
     internal class PacketDictionnary
     {
@@ -6,10 +8,7 @@
 
         static readonly List<int> ignore = new();
 
-        static public readonly List<int> filter = new()
-        {
-            /*2962, 9325, 5787, 6295, */6639, 302, 8309
-        };
+        static public readonly List<int> filter = new();
 
         static PacketDictionnary()
         {
@@ -79,7 +78,6 @@
             AddPacket(489, "BasicTimeMessage");
             AddPacket(271, "AlmanachCalendarDateMessage");
             AddPacket(2629, "BasicNoOperationMessage");
-            AddPacket(8309, "BasicAckMessage", true);
             AddPacket(3970, "SystemMessageDisplayMessage");
             AddPacket(1819, "TextInformationMessage");
             AddPacket(6178, "OnConnectionEventMessage");
@@ -97,7 +95,6 @@
             AddPacket(4094, "GameContextMoveElementMessage");
             AddPacket(4072, "GameContextMoveMultipleElementsMessage");
             AddPacket(7571, "GameContextRefreshEntityLookMessage");
-            AddPacket(302, "GameMapMovementConfirmMessage");
             AddPacket(9225, "GameMapNoMovementMessage");
             AddPacket(6174, "GameMapMovementMessage", true);
             AddPacket(4129, "GameCautiousMapMovementMessage");
@@ -123,7 +120,6 @@
             AddPacket(968, "DebugInClientMessage");
             AddPacket(2273, "ClientYouAreDrunkMessage");
             AddPacket(4937, "DisplayNumericalValuePaddockMessage");
-            AddPacket(3145, "CurrentMapMessage");
             AddPacket(2503, "CurrentMapInstanceMessage");
             AddPacket(7355, "TeleportOnSameMapMessage");
             AddPacket(14, "MapFightCountMessage");
@@ -131,7 +127,6 @@
             AddPacket(2947, "MapRunningFightDetailsMessage");
             AddPacket(8625, "MapRunningFightDetailsExtendedMessage");
             AddPacket(5033, "MapObstacleUpdateMessage");
-            AddPacket(695, "MapComplementaryInformationsDataMessage");
             AddPacket(2902, "MapComplementaryInformationsDataInHouseMessage");
             AddPacket(3302, "MapComplementaryInformationsWithCoordsMessage");
             AddPacket(5569, "SubareaRewardRateMessage");
@@ -298,13 +293,10 @@
             AddPacket(9647, "ForgettableSpellEquipmentSlotsMessage");
             AddPacket(3110, "LeaveDialogMessage");
             AddPacket(1886, "PauseDialogMessage");
-            AddPacket(5734, "InteractiveUseErrorMessage");
             AddPacket(8940, "InteractiveUsedMessage");
-            AddPacket(5459, "InteractiveUseEndedMessage");
             AddPacket(2157, "InteractiveMapUpdateMessage");
             AddPacket(8533, "StatedMapUpdateMessage");
             AddPacket(8718, "InteractiveElementUpdatedMessage");
-            AddPacket(5787, "StatedElementUpdatedMessage");
             AddPacket(9309, "ZaapRespawnUpdatedMessage");
             AddPacket(1074, "TeleportDestinationsMessage");
             AddPacket(6758, "ZaapDestinationsMessage");
@@ -589,7 +581,6 @@
             AddPacket(7056, "ObjectErrorMessage");
             AddPacket(8182, "ObjectDeletedMessage");
             AddPacket(6633, "ObjectsDeletedMessage");
-            AddPacket(2962, "ObjectQuantityMessage");
             AddPacket(6590, "ObjectsQuantityMessage");
             AddPacket(2227, "ObjectModifiedMessage");
             AddPacket(6036, "ObjectJobAddedMessage");
@@ -800,9 +791,6 @@
             AddPacket(2990, "AlterationAddedMessage");
             AddPacket(660, "AlterationRemovedMessage");
             AddPacket(2645, "AlterationsUpdatedMessage");
-            AddPacket(6295, "InteractiveUseRequestMessage");
-            AddPacket(6639, "GameMapMovementRequestMessage");
-            AddPacket(9293, "MapInformationsRequestMessage");
             #endregion
 
             #region Protocol Types
@@ -905,10 +893,8 @@
             AddPacket(9881, "SkillActionDescriptionTimed");
             AddPacket(8841, "SkillActionDescriptionCollect");
             AddPacket(4921, "SkillActionDescriptionCraft");
-            AddPacket(5854, "HouseInformations");
             AddPacket(7977, "AccountHouseInformations");
             AddPacket(9507, "HouseInformationsInside");
-            AddPacket(5625, "HouseInformationsForGuild");
             AddPacket(9048, "HouseOnMapInformations");
             AddPacket(4306, "HouseInstanceInformations");
             AddPacket(4880, "HouseGuildedInformations");
@@ -1096,21 +1082,62 @@
             AddPacket(4681, "BasicPingMessage", true);
             AddPacket(1712, "ServerSelectionMessage");
             #endregion
+
+            #region Implemented
+
+            AddInDictionnary(typeof(AccountTagInformation));
+            AddInDictionnary(typeof(BasicAckMessage));
+            AddInDictionnary(typeof(CurrentMapMessage));
+            AddInDictionnary(typeof(GameMapMovementConfirmMessage));
+            AddInDictionnary(typeof(GameMapMovementRequestMessage));
+            AddInDictionnary(typeof(HouseInformations));
+            AddInDictionnary(typeof(HouseInformationsForGuild));
+            AddInDictionnary(typeof(InteractiveUseEndedMessage));
+            AddInDictionnary(typeof(InteractiveUseErrorMessage));
+            AddInDictionnary(typeof(InteractiveUseRequestMessage));
+            AddInDictionnary(typeof(MapComplementaryInformationsDataMessage));
+            AddInDictionnary(typeof(MapInformationsRequestMessage));
+            AddInDictionnary(typeof(ObjectItemAdded));
+            AddInDictionnary(typeof(ObjectQuantityMessage));
+            AddInDictionnary(typeof(StatedElement));
+            AddInDictionnary(typeof(StatedElementUpdatedMessage));
+
+            #endregion
         }
 
-        static void AddPacket(int id, string name, bool isIgnored = false)
+        static public void AddPacket(short id, string name, bool isIgnored = false, bool isFiltered = false)
         {
             packet[id] = name;
 
             if (isIgnored)
                 ignore.Add(id);
+
+            if (isFiltered)
+                filter.Add(id);
+        }
+
+        static void AddInDictionnary(Type packetEntity)
+        {
+            try
+            {
+                short id = (short)packetEntity.GetField("id").GetValue(packetEntity);
+                string name = (string)packetEntity.GetField("name").GetValue(packetEntity);
+                bool isIgnored = (bool)packetEntity.GetField("isIgnored").GetValue(packetEntity);
+                bool isFiltered = (bool)packetEntity.GetField("isFiltered").GetValue(packetEntity);
+
+                AddPacket(id, name, isIgnored, isFiltered);
+            }
+            catch (Exception e)
+            {
+                Form1.LogPacketMessage($"Error while adding {packetEntity.Name} to the packet dictionnary : {e.Message}");
+            }
         }
 
         public static void LogPacketName(int id, string status)
         {
             bool isIgnored = ignore.Contains(id);
             bool isFiltered = filter.Contains(id);
-            bool isHandled = packet.ContainsKey(id) /*&& !isIgnored && isFiltered*/;
+            bool isHandled = packet.ContainsKey(id) && !isIgnored && isFiltered;
 
             if (isHandled)
                 Form1.LogPacket($"[{status}] Packet {id} : {packet[id]}");

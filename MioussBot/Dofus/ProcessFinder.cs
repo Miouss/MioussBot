@@ -1,53 +1,69 @@
 ﻿using System.Diagnostics;
 
+
 namespace MioussBot.Dofus
 {
     internal class ProcessFinder
     {
-        static private Thread? finding;
-        static private CancellationTokenSource? tokenSource;
+        static Task? finding;
+        static CancellationTokenSource? cts;
+        static bool isRunning = false;
+        static bool hasFound = false;
+
         static public void StartFinding()
         {
-            tokenSource = new();
-            finding = new Thread(() =>
+            cts = new();
+            isRunning = true;
+
+            finding = new Task(() =>
             {
-                Form1.Log("Finding Dofus...");
-
-                bool hasFound = false;
-
-                while (!tokenSource.Token.IsCancellationRequested && !hasFound)
+                try
                 {
-                    Process[] processes = Process.GetProcessesByName("Dofus");
+                    Form1.Log("Finding Dofus...");
 
-                    hasFound = processes.Length != 0;
+                    hasFound = false;
 
-                    if (hasFound)
+                    while (!hasFound && !cts.Token.IsCancellationRequested)
                     {
-                        Process DofusProcess = processes[0];
-                        Form1.Log($"Dofus found at {DofusProcess.Id}");
+                        Process[] processes = Process.GetProcessesByName("Dofus");
 
-                        SocketListener.Start();
+                        hasFound = processes.Length != 0;
+
+                        if (hasFound)
+                        {
+                            Process DofusProcess = processes[0];
+                            Form1.Log($"Dofus found at {DofusProcess.Id}");
+
+                            SocketListener.Start();
+                        }
+                        else
+                        {
+                            Task.Delay(1000, cts.Token).Wait();
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    if (!cts.Token.IsCancellationRequested)
+                        Form1.Log(e.ToString());
                     else
-                    {
-                        Thread.Sleep(1000);
-                    }
+                        Form1.Log("Stop finding Dofus");
                 }
             });
 
             finding.Start();
         }
 
-        static public void StopFinding()
+        static public void Stop()
         {
-            tokenSource?.Cancel();
-            finding?.Join();
-        }
+            if (isRunning && !hasFound)
+            {
+                cts?.Cancel();
+                finding?.Wait();
+                cts?.Dispose();
 
-        public static void Stop()
-        {
-            StopFinding();
-            tokenSource?.Dispose();
+                isRunning = false;
+            }
         }
     }
 }

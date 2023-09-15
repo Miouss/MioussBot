@@ -33,8 +33,9 @@
             DebugBox = new TextBox();
             button1 = new Button();
             button2 = new Button();
-            button3 = new Button();
-            Test = new Button();
+            startTrajet = new Button();
+            recordTrajet = new Button();
+            clearTrajet = new Button();
             SuspendLayout();
             // 
             // Start
@@ -91,33 +92,44 @@
             button2.UseVisualStyleBackColor = true;
             button2.Click += Button2_Click;
             // 
-            // button3
+            // startTrajet
             // 
-            button3.Location = new Point(181, 283);
-            button3.Name = "button3";
-            button3.Size = new Size(167, 53);
-            button3.TabIndex = 5;
-            button3.Text = "Collect Ortie";
-            button3.UseVisualStyleBackColor = true;
-            button3.Click += Button3_Click;
+            startTrajet.Location = new Point(219, 283);
+            startTrajet.Name = "startTrajet";
+            startTrajet.Size = new Size(139, 56);
+            startTrajet.TabIndex = 6;
+            startTrajet.Text = "Start Trajet";
+            startTrajet.UseVisualStyleBackColor = true;
+            startTrajet.Click += StartTrajet_Click;
             // 
-            // Test
+            // recordTrajet
             // 
-            Test.Location = new Point(489, 283);
-            Test.Name = "Test";
-            Test.Size = new Size(247, 56);
-            Test.TabIndex = 6;
-            Test.Text = "TEST PACKET";
-            Test.UseVisualStyleBackColor = true;
-            Test.Click += Test_Click;
+            recordTrajet.Location = new Point(439, 283);
+            recordTrajet.Name = "recordTrajet";
+            recordTrajet.Size = new Size(139, 56);
+            recordTrajet.TabIndex = 7;
+            recordTrajet.Text = "Record Trajet";
+            recordTrajet.UseVisualStyleBackColor = true;
+            recordTrajet.Click += RecordTrajet_Click;
+            // 
+            // clearTrajet
+            // 
+            clearTrajet.Location = new Point(649, 283);
+            clearTrajet.Name = "clearTrajet";
+            clearTrajet.Size = new Size(139, 56);
+            clearTrajet.TabIndex = 8;
+            clearTrajet.Text = "Clear Trajet";
+            clearTrajet.UseVisualStyleBackColor = true;
+            clearTrajet.Click += ClearTrajet_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
-            Controls.Add(Test);
-            Controls.Add(button3);
+            Controls.Add(clearTrajet);
+            Controls.Add(recordTrajet);
+            Controls.Add(startTrajet);
             Controls.Add(button2);
             Controls.Add(button1);
             Controls.Add(DebugBox);
@@ -135,8 +147,9 @@
         public Button Start;
         public Button Stop;
         private Button button2;
-        private Button button3;
-        private Button Test;
+        private Button startTrajet;
+        private Button recordTrajet;
+        private Button clearTrajet;
         static public TextBox DebugBox;
     }
 }

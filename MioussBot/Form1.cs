@@ -27,8 +27,8 @@ namespace MioussBot
             {
                 SetCancellingButton();
 
-                SocketListener.StopFiltering();
-                ProcessFinder.StopFinding();
+                SocketCom.StopAll();
+                ProcessFinder.Stop();
 
                 SetStartButton();
             }
@@ -58,7 +58,7 @@ namespace MioussBot
 
         private void Stop_Click(object sender, EventArgs e)
         {
-            SocketListener.Stop();
+            SocketCom.StopAll();
             ProcessFinder.Stop();
 
             Application.Exit();
@@ -82,29 +82,48 @@ namespace MioussBot
 
         static public void Log(string text)
         {
-            DebugBox.AppendText(text + Environment.NewLine);
+            if (DebugBox.InvokeRequired)
+            {
+                DebugBox.Invoke((MethodInvoker)(() =>
+                {
+                    DebugBox.AppendText(text + Environment.NewLine);
+                }));
+            }
+            else
+            {
+                DebugBox.AppendText(text + Environment.NewLine);
+            }
         }
 
         private void Button1_Click(object sender, EventArgs e)
         {
-            PacketSerializeAndSend.ZaapAstrub();
+            InteractiveUseRequestMessage.ZaapAstrub();
         }
 
         private void Button2_Click(object sender, EventArgs e)
         {
-            PacketSerializeAndSend.ZaapTainela();
+            //GameMapMovementRequestMessage.Send(189793284, 25116, 24752);
+
+            List<int> cells = Map.GetCellsIdBetween(81, 60);
+
+            Log($"Cells : {string.Join(", ", cells)}");
+
+            GameMapMovementRequestMessage.Send(189792261, 81, 67, 80, 66, 79, 65, 78, 64, 77, 63, 76, 62, 75, 61, 74, 60);
         }
 
-        private void Button3_Click(object sender, EventArgs e)
+        private void StartTrajet_Click(object sender, EventArgs e)
         {
-            
+            Trajet.StartTrajet();
         }
 
-        private void Test_Click(object sender, EventArgs e)
+        private void RecordTrajet_Click(object sender, EventArgs e)
         {
-            PacketSerializeAndSend.test();
+            Trajet.RecordTrajet();
         }
 
-
+        private void ClearTrajet_Click(object sender, EventArgs e)
+        {
+            Trajet.ClearTrajet();
+        }
     }
 }

@@ -1,79 +1,75 @@
-﻿using System.Net;
+﻿using Microsoft.VisualBasic.ApplicationServices;
+using System.Net;
 using System.Net.Sockets;
 
 namespace MioussBot
 {
     internal class SocketCom
     {
-        public Socket Socket { get; set; }
+        static CancellationTokenSource Cts;
+        static bool IsRunning = false;
 
-        private Thread thread;
-        private CancellationTokenSource tokenSource;
-
-        private bool isClient;
+        public Socket Socket;
+        readonly bool IsClient;
 
         public SocketCom(bool isClient)
         {
-            this.isClient = isClient;
+            IsClient = isClient;
 
-            if (isClient)
-            {
+            if (IsClient)
                 StartClient();
-            }
             else
-            {
                 StartServer();
+        }
+
+        static public void Initialize()
+        {
+            Cts = new();
+            IsRunning = true;
+        }
+
+        static public void StopAll()
+        {
+            if (IsRunning)
+            {
+                Cts?.Cancel();
+
+                Cts?.Dispose();
+
+                IsRunning = false;
             }
         }
 
         public void StartFiltering(Socket targetSocket)
         {
-            tokenSource = new();
-            thread =
-                 new(() =>
-                 {
-                     try
-                     {
-                         while (!tokenSource.Token.IsCancellationRequested)
-                         {
-                             PacketDecoder.Handler(Socket, targetSocket, isClient);
-                         }
-
-                         StopSocket();
-                     }
-                     catch (Exception e)
-                     {
-                         Form1.Log(e.ToString());
-                     }
-                 });
-
-            thread.Start();
+            new Task(() =>
+            {
+                try
+                {
+                    while (!Cts.Token.IsCancellationRequested && Socket.Connected)
+                    {
+                        PacketDecoder.Handler(Socket, targetSocket, IsClient);
+                    }
+                    StopCom();
+                }
+                catch (Exception e)
+                {
+                    Form1.Log(e.ToString());
+                }
+            }).Start();
         }
 
-        private void StopSocket()
+        public void StopCom()
         {
             Socket?.Shutdown(SocketShutdown.Both);
             Socket?.Close();
 
-            string origin = isClient ? "Client" : "Server";
+            string origin = IsClient ? "Client" : "Server";
 
             Form1.Log($"{origin} connection closed");
         }
 
-
-        public void StopFiltering()
-        {
-            tokenSource?.Cancel();
-            thread?.Join();
-        }
-
-        public void Stop()
-        {
-            StopFiltering();
-            tokenSource?.Dispose();
-        }
-
-        private void StartClient()
+        void StartClient()
         {
             IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
             IPEndPoint localEndPoint = new(ipAddress, 443);
@@ -90,7 +86,7 @@ namespace MioussBot
 
         }
 
-        private void StartServer()
+        void StartServer()
         {
             Socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
             Socket.Connect("172.65.220.96", 5555);

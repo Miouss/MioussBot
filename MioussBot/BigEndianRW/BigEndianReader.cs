@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace MioussBot.BigEndianRW
+namespace MioussBot
 {
     internal class BigEndianReader
     {
@@ -9,8 +9,9 @@ namespace MioussBot.BigEndianRW
         private readonly int CHUNCK_BIT_SIZE = 7;
         private readonly int MASK_10 = 128;
         private readonly int MASK_01 = 127;
+        private readonly int UNSIGNED_SHORT_MAX_VALUE = 65536;
 
-        private readonly byte[] content;
+        public readonly byte[] content;
         private int position = 0;
 
         public BigEndianReader(byte[] content)
@@ -52,7 +53,7 @@ namespace MioussBot.BigEndianRW
 
         public short ReadShort()
         {
-            return (short)((ReadByte() << 8) + ReadByte());
+            return (short)((short)(ReadByte() << 8) + ReadByte());
         }
 
         public int ReadIntOn16Bits()
@@ -108,7 +109,7 @@ namespace MioussBot.BigEndianRW
                 if (!hasNext)
                 {
                     if (value > short.MaxValue)
-                        value -= 65536;
+                        value -= UNSIGNED_SHORT_MAX_VALUE;
 
                     return (short)value;
                 }

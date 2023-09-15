@@ -1,8 +1,7 @@
-﻿using System.Net.Sockets;
-using System.Text;
+﻿using System.Text;
 using MioussBot.Packets;
 
-namespace MioussBot.BigEndianRW
+namespace MioussBot
 {
     internal class BigEndianWriter
     {
@@ -78,13 +77,15 @@ namespace MioussBot.BigEndianRW
             WriteByteAtBegin(bytes[1]);
         }
 
-        public void Pack(short id, int instanceId)
+        public void Pack(short id)
         {
             packet.id = id;
             int lengthType = GetAndWriteLengthType();
-            foreach (byte b in BitConverter.GetBytes(instanceId))
+            foreach (byte b in BitConverter.GetBytes(4))
                 WriteByteAtBegin(b);
             WriteHeader(id, lengthType);
+
+            SendPacket();
         }
 
         public void WriteString(string message)

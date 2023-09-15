@@ -1,34 +1,29 @@
-﻿using Microsoft.VisualBasic.Logging;
-using MioussBot.BigEndianRW;
-using MioussBot.Dofus.Assets;
-using MioussBot.Packets;
-using System.Reflection.PortableExecutable;
+﻿using MioussBot.Packets;
+using MioussBot.Packets.List;
+using System.Reflection;
 
-namespace MioussBot.Packets
+namespace MioussBot
 {
     internal class PacketDeserialize
     {
         public static BigEndianReader reader;
 
-        static readonly Dictionary<int, Action> packetDictionnary = new();
+        static public readonly Dictionary<int, Action> packetDictionnary = new();
 
         static PacketDeserialize()
         {
-            AddPacket(3145, CurrentMapMessage);
-            AddPacket(5787, StatedElementUpdatedMessage);
-            AddPacket(6295, InteractiveUseRequestMessage);
-            AddPacket(6639, GameMapMovementRequestMessage);
-            AddPacket(302, GameMapMovementConfirmMessage);
-            AddPacket(4529, HaapiApiKeyMessage);
-            AddPacket(3236, FightTeamMemberCharacterInformations);
-            AddPacket(2962, ObjectQuantityMessage);
-            AddPacket(9325, ObjectItemAdded);
-            AddPacket(8309, BasicAckMessage);
-        }
+            AddAsDeserialize(typeof(CurrentMapMessage));
+            AddAsDeserialize(typeof(StatedElementUpdatedMessage));
+            AddAsDeserialize(typeof(InteractiveUseRequestMessage));
+            AddAsDeserialize(typeof(GameMapMovementRequestMessage));
+            AddAsDeserialize(typeof(ObjectQuantityMessage));
+            AddAsDeserialize(typeof(InteractiveUseEndedMessage));
+            AddAsDeserialize(typeof(InteractiveUseErrorMessage));
+            AddAsDeserialize(typeof(StatedMapUpdateMessage));
+            AddAsDeserialize(typeof(MapComplementaryInformationsDataMessage));
+            AddAsDeserialize(typeof(GameMapMovementConfirmMessage));
+            AddAsDeserialize(typeof(ObjectItemAdded));
 
-        private static void AddPacket(int id, Action action)
-        {
-            packetDictionnary[id] = action;
         }
         public static void Handle(int id)
         {
@@ -36,110 +31,27 @@ namespace MioussBot.Packets
                 packetDictionnary[id]();
         }
 
-        static void ObjectItemAdded()
+        private static void AddAsDeserialize(Type packetEntity)
         {
-            uint id = 0;
-            uint item = 0;
-
-            uint position = (uint)reader.ReadShort();
-            uint objectGID = (uint)reader.ReadVarInt();
-            uint effectsLen = (uint)reader.ReadShort();
-            List<uint> effects = new();
-
-            for (int i = 0; i < effectsLen; i++)
+            try
             {
-                id = (uint)reader.ReadVarShort();
-                effects.Add((uint)reader.ReadVarShort());
+
+                MethodInfo decrypt = packetEntity.GetMethod("Decrypt", BindingFlags.Static | BindingFlags.Public);
+
+                short id = (short)packetEntity.GetField("id").GetValue(packetEntity);
+                string name = (string)packetEntity.GetField("name").GetValue(packetEntity);
+
+                bool hasParam = decrypt.GetParameters().Length > 0;
+
+                if (hasParam)
+                    packetDictionnary[id] = () => decrypt.Invoke(null, new object[] { reader });
+                else
+                    packetDictionnary[id] = () => decrypt.Invoke(null, null);
             }
-
-            uint objectUID = (uint)reader.ReadVarInt();
-            uint quantity = (uint)reader.ReadVarInt();
-
-            Form1.LogPacketMessage($"Position : {position} | Object GID : {objectGID} | Effects : {string.Join(", ", effects)} | Object UID : {objectUID} | Quantity : {quantity}");
-
-        }
-        static void ObjectQuantityMessage()
-        {
-            uint objectUID = (uint)reader.ReadVarInt();
-            uint quantity = (uint)reader.ReadVarInt();
-            uint origin = reader.ReadByte();
-
-
-            Form1.LogPacketMessage($"ObjectUID : {objectUID} | Quantity : {quantity} | Origin : {origin}");
-        }
-        static void FightTeamMemberCharacterInformations()
-        {
-            string name = reader.ReadString();
-            double id = reader.ReadDouble();
-            int level = reader.ReadVarShort();
-
-
-            Form1.LogPacketMessage($"Name : {name} | Level : {level} | ID : {id}");
-        }
-        static void HaapiApiKeyMessage()
-        {
-            string apiKey = reader.ReadString();
-
-            Form1.LogPacketMessage($"ApiKey : {apiKey}");
-        }
-        static void GameMapMovementRequestMessage()
-        {
-            uint keyMoveLen = (uint)reader.ReadShort();
-            List<uint> keyMoves = new();
-
-            for (int i = 0; i < keyMoveLen; i++)
+            catch (Exception e)
             {
-                keyMoves.Add((uint)reader.ReadShort());
+                Form1.LogPacketMessage($"Error while adding {packetEntity.Name} to the deserialize dictionnary : {e.Message}");
             }
-
-            double mapId = reader.ReadDouble();
-
-            Form1.LogPacketMessage($"KeyMoveLen : {keyMoveLen} | keyMoves: {string.Join(", ", keyMoves)} | MapId : {mapId}");
-
         }
-
-
-        static void CurrentMapMessage()
-        {
-            double mapId = reader.ReadDouble();
-
-            Form1.LogPacketMessage($"MapId : {mapId}");
-        }
-
-        static void InteractiveUseRequestMessage()
-        {
-            uint elemId = (uint)reader.ReadVarInt();
-            uint skillInstanceId = (uint)reader.ReadVarInt();
-
-            Form1.LogPacketMessage($"Element ID : {elemId} | Skill Instance ID : {skillInstanceId}");
-
-        }
-
-        static void StatedElementUpdatedMessage()
-        {
-            uint elementId = (uint)reader.ReadInt();
-            uint elementCellId = (uint)reader.ReadVarShort();
-            uint elementState = (uint)reader.ReadVarInt();
-            bool onCurrentMap = reader.ReadBoolean();
-
-            Form1.LogPacketMessage($"Element ID : {elementId} | Element Cell ID : {elementCellId} | Element State : {elementState} | On Current Map : {onCurrentMap}");
-        }
-
-        static void GameMapMovementConfirmMessage()
-        {
-            Form1.LogPacketMessage("Movement done");
-
-            if(PacketSerializeAndSend.trajets.Any())
-                PacketSerializeAndSend.hasDoneMoved = true;
-        }
-
-        static void BasicAckMessage()
-        {
-            Form1.LogPacketMessage("Ack");
-            if(PacketSerializeAndSend.hasDoneMoved) 
-                PacketSerializeAndSend.hasServerResponse = true;
-        }
-
-
     }
 }
